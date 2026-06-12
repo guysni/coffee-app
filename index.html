@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Snit-Coffee Orders</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <!-- Supabase JS CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    // Initialize Supabase Configuration
+    const SUPABASE_URL = "https://twbsccqhutueemehycch.supabase.co"; 
+    const SUPABASE_ANON_KEY = "sb_publishable_peoxwmGX0-BXsUQCQMUAOA_9DQb9STH";
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  </script>
+</head>
+<body class="bg-stone-100 text-stone-800 font-sans min-h-screen pb-12 transition-all duration-200">
+
+  <!-- Header -->
+  <header class="bg-amber-950 text-amber-50 shadow-md py-8 px-4 mb-8 relative border-b-4 border-amber-800">
+    <div class="max-w-6xl mx-auto flex flex-col items-center justify-center relative">
+      <!-- Language Toggle Button -->
+      <button onclick="toggleLanguage()" class="absolute top-[-10px] right-2 md:right-4 bg-amber-900 hover:bg-amber-800 text-amber-100 font-semibold py-1.5 px-4 rounded-full text-xs transition-colors cursor-pointer border border-amber-700 shadow-xs">
+        🌐 <span id="langBtnText">עברית</span>
+      </button>
+      
+      <!-- Styled Logo Block -->
+      <div class="flex items-center gap-4 mb-2">
+        <!-- CSS Coffee Cup Logo Graphic -->
+        <div class="relative w-12 h-10 bg-amber-100 rounded-b-xl border-t-2 border-amber-100 shadow-xs flex items-center justify-center">
+          <!-- Handle -->
+          <div class="absolute right-[-8px] top-[6px] w-4 h-5 border-3 border-amber-100 rounded-r-lg"></div>
+          <!-- Steam lines -->
+          <div class="absolute top-[-14px] left-[12px] w-1 h-3 bg-amber-200/60 rounded-full animate-bounce"></div>
+          <div class="absolute top-[-18px] left-[20px] w-1 h-4 bg-amber-200/80 rounded-full animate-bounce delay-150"></div>
+          <div class="absolute top-[-12px] left-[28px] w-1 h-3 bg-amber-200/60 rounded-full animate-bounce delay-300"></div>
+          <!-- Inside bean indicator -->
+          <div class="w-2 h-4 bg-amber-950 rounded-full transform rotate-45 opacity-80"></div>
+        </div>
+        
+        <!-- Logo Text Typography -->
+        <div class="flex flex-col">
+          <span class="text-3xl font-black tracking-wide font-serif text-amber-100">Snit-Coffee</span>
+          <div class="h-0.5 w-full bg-amber-600 rounded-full mt-0.5"></div>
+        </div>
+      </div>
+      
+      <p id="headerSubtitle" class="text-amber-200/90 text-sm font-medium mt-2">Place your order and I'll get brewing</p>
+    </div>
+  </header>
+
+  <main class="max-w-6xl mx-auto px-4 grid grid-cols-1 md:grid-cols-2 gap-8">
+    
+    <!-- Left Column: Order Form -->
+    <section class="bg-white p-6 rounded-2xl shadow-xs border border-stone-200 h-fit">
+      <h2 id="formTitle" class="text-xl font-bold text-stone-900 mb-6 border-b border-stone-100 pb-2">Place Your Order</h2>
+      
+      <form id="coffeeForm" class="space-y-5">
+        <div>
+          <label id="lblName" class="block text-sm font-semibold mb-1">Your Name</label>
+          <input type="text" id="name" required class="w-full px-3 py-2 border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-800 bg-stone-50">
+        </div>
+
+        <div>
+          <label id="lblCoffee" class="block text-sm font-semibold mb-1">Coffee Type</label>
+          <select id="coffeeType" class="w-full px-3 py-2 border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-800 bg-stone-50"></select>
+        </div>
+
+        <div>
+          <label id="lblMilk" class="block text-sm font-semibold mb-1">Milk Type</label>
+          <select id="milkType" class="w-full px-3 py-2 border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-800 bg-stone-50"></select>
+        </div>
+
+        <div>
+          <label id="lblSugar" class="block text-sm font-semibold mb-1">Sugar Level</label>
+          <select id="sugarLevel" class="w-full px-3 py-2 border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-800 bg-stone-50"></select>
+        </div>
+
+        <div>
+          <label id="lblNotes" class="block text-sm font-semibold mb-1">Special Notes</label>
+          <textarea id="notes" class="w-full px-3 py-2 border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-800 h-20 bg-stone-50"></textarea>
+        </div>
+
+        <button type="submit" id="btnSubmit" class="w-full bg-amber-900 text-white font-bold py-3 rounded-lg hover:bg-amber-950 transition-colors cursor-pointer shadow-xs tracking-wide">
+          Submit Order 🚀
+        </button>
+      </form>
+      <div id="formFeedback" class="mt-4 text-center hidden font-medium"></div>
+    </section>
+
+    <!-- Right Column: Host Dashboard -->
+    <section class="bg-white p-6 rounded-2xl shadow-xs border border-stone-200">
+      <div class="flex justify-between items-center mb-6 border-b border-stone-100 pb-2">
+        <h2 id="dashboardTitle" class="text-xl font-bold text-stone-900">Live Orders (Host View)</h2>
+        <button onclick="fetchOrders()" id="btnRefresh" class="text-xs bg-stone-200 hover:bg-stone-300 text-stone-700 px-3 py-1 rounded-full font-medium transition-colors cursor-pointer">
+          🔄 Refresh
+        </button>
+      </div>
+      
+      <div id="ordersList" class="space-y-3 max-h-[500px] overflow-y-auto pr-1">
+        <p id="noOrdersMessage" class="text-stone-400 text-center py-8">No active orders yet.</p>
+      </div>
+    </section>
+
+  </main>
+
+  <script>
+    // Translations Dictionary
+    const translations = {
+      en: {
+        dir: "ltr",
+        langBtn: "עברית",
+        headerSubtitle: "Place your order and I'll get brewing",
+        formTitle: "Place Your Order",
+        lblName: "Your Name",
+        lblCoffee: "Coffee Type",
+        lblMilk: "Milk Type",
+        lblSugar: "Sugar Level",
+        lblNotes: "Special Notes",
+        notesPlaceholder: "Extra hot, ice, strong...",
+        btnSubmit: "Submit Order 🚀",
+        dashboardTitle: "Live Orders (Host View)",
+        btnRefresh: "🔄 Refresh",
+        noOrders: "No active orders yet.",
+        successMsg: "Order submitted successfully! ☕",
+        errorMsg: "Error submitting order. Try again.",
+        doneBtn: "Done",
+        coffeeOptions: ["Espresso", "Double Espresso", "Macchiato", "Cortado", "Cappuccino", "Latte", "Americano", "Flat White"],
+        milkOptions: ["Whole Milk", "Oat Milk", "Almond Milk", "None (Black)"],
+        sugarOptions: ["No Sugar", "½ Teaspoon", "1 Teaspoon", "2 Teaspoons"]
+      },
+      he: {
+        dir: "rtl",
+        langBtn: "English",
+        headerSubtitle: "תגידו לי מה בא לכם, ואני כבר מתחיל להכין",
+        formTitle: "הזמינו את הקפה שלכם",
+        lblName: "שם מלא",
+        lblCoffee: "סוג הקפה",
+        lblMilk: "סוג חלב",
+        lblSugar: "כמות סוכר",
+        lblNotes: "הערות מיוחדות",
+        notesPlaceholder: "רותח, קר, חזק, בלי קצף...",
+        btnSubmit: "שלח הזמנה 🚀",
+        dashboardTitle: "הזמנות חיות (תצוגת מארח)",
+        btnRefresh: "🔄 רענן",
+        noOrders: "אין הזמנות פעילות כרגע.",
+        successMsg: "ההזמנה נשלחה בהצלחה! ☕",
+        errorMsg: "שגיאה בשליחת ההזמנה. נסה שוב.",
+        doneBtn: "מוכן",
+        coffeeOptions: ["אספרסו", "אספרסו כפול", "מקיאטו", "קורטאדו", "קפוצ'ינו / הפוך", "לאטה", "אמריקאנו", "פלאט וייט"],
+        milkOptions: ["חלב רגיל", "חלב שיבולת שועל", "חלב שקדים", "ללא חלב (שחור)"],
+        sugarOptions: ["ללא סוכר", "½ כפית סוכר", "1 כפית סוכר", "2 כפיות סוכר"]
+      }
+    };
+
+    let currentLang = 'en';
+
+    function updateUI() {
+      const t = translations[currentLang];
+      
+      document.documentElement.dir = t.dir;
+      document.documentElement.lang = currentLang;
+
+      document.getElementById('langBtnText').innerText = t.langBtn;
+      document.getElementById('headerSubtitle').innerText = t.headerSubtitle;
+      document.getElementById('formTitle').innerText = t.formTitle;
+      document.getElementById('lblName').innerText = t.lblName;
+      document.getElementById('lblCoffee').innerText = t.lblCoffee;
+      document.getElementById('lblMilk').innerText = t.lblMilk;
+      document.getElementById('lblSugar').innerText = t.lblSugar;
+      document.getElementById('lblNotes').innerText = t.lblNotes;
+      document.getElementById('notes').placeholder = t.notesPlaceholder;
+      document.getElementById('btnSubmit').innerText = t.btnSubmit;
+      document.getElementById('dashboardTitle').innerText = t.dashboardTitle;
+      document.getElementById('btnRefresh').innerText = t.btnRefresh;
+
+      populateDropdown('coffeeType', t.coffeeOptions);
+      populateDropdown('milkType', t.milkOptions);
+      populateDropdown('sugarLevel', t.sugarOptions);
+
+      fetchOrders();
+    }
+
+    function populateDropdown(elementId, optionsArray) {
+      const select = document.getElementById(elementId);
+      const currentVal = select.value;
+      const currentIndex = Math.max(0, Array.from(select.options).findIndex(opt => opt.value === currentVal));
+      
+      select.innerHTML = optionsArray.map(opt => `<option value="${opt}">${opt}</option>`).join('');
+      if (select.options[currentIndex]) {
+        select.selectedIndex = currentIndex;
+      }
+    }
+
+    function toggleLanguage() {
+      currentLang = currentLang === 'en' ? 'he' : 'en';
+      updateUI();
+    }
+
+    const form = document.getElementById('coffeeForm');
+    const feedback = document.getElementById('formFeedback');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const t = translations[currentLang];
+      
+      const payload = {
+        name: document.getElementById('name').value,
+        coffee_type: document.getElementById('coffeeType').value,
+        milk_type: document.getElementById('milkType').value,
+        sugar_level: document.getElementById('sugarLevel').value,
+        notes: document.getElementById('notes').value
+      };
+
+      try {
+        const { error } = await supabaseClient.from('coffee_orders').insert([payload]);
+        if (error) throw error;
+
+        feedback.className = "mt-4 text-center text-green-600 font-medium";
+        feedback.innerText = t.successMsg;
+        form.reset();
+        fetchOrders();
+      } catch (err) {
+        feedback.className = "mt-4 text-center text-red-600 font-medium";
+        feedback.innerText = t.errorMsg;
+        console.error(err);
+      }
+      
+      feedback.classList.remove('hidden');
+      setTimeout(() => feedback.classList.add('hidden'), 5000);
+    });
+
+    async function fetchOrders() {
+      const t = translations[currentLang];
+      try {
+        const { data, error } = await supabaseClient
+          .from('coffee_orders')
+          .select('*')
+          .order('created_at', { ascending: false });
+
+        if (error) throw error;
+
+        const container = document.getElementById('ordersList');
+        if (!data || data.length === 0) {
+          container.innerHTML = `<p id="noOrdersMessage" class="text-stone-400 text-center py-8">${t.noOrders}</p>`;
+          return;
+        }
+
+        container.innerHTML = data.map(order => `
+          <div class="p-4 border border-stone-100 rounded-xl bg-stone-50 flex justify-between items-start gap-4 shadow-2xs">
+            <div>
+              <div class="flex items-center gap-2 flex-wrap">
+                <span class="font-bold text-stone-900">${escapeHtml(order.name)}</span>
+                <span class="text-xs bg-amber-100 text-amber-900 px-2 py-0.5 rounded-full font-semibold">${escapeHtml(order.coffee_type)}</span>
+              </div>
+              <p class="text-sm text-stone-600 mt-1">🥛 ${escapeHtml(order.milk_type)} | 🍬 ${escapeHtml(order.sugar_level)}</p>
+              ${order.notes ? `<p class="text-xs italic text-stone-500 mt-1 bg-stone-100 p-1.5 rounded">📝 ${escapeHtml(order.notes)}</p>` : ''}
+              <span class="text-[10px] text-stone-400 block mt-2">${new Date(order.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+            </div>
+            <button onclick="deleteOrder(${order.id})" class="text-xs text-red-600 hover:text-red-700 bg-red-50 hover:bg-red-100 p-1.5 rounded-lg transition-colors cursor-pointer font-medium">
+              ${t.doneBtn}
+            </button>
+          </div>
+        `).join('');
+
+      } catch (err) {
+        console.error("Error fetching orders:", err);
+      }
+    }
+
+    async function deleteOrder(id) {
+      try {
+        const { error } = await supabaseClient.from('coffee_orders').delete().eq('id', id);
+        if (error) throw error;
+        fetchOrders();
+      } catch (err) {
+        console.error("Error clearing order:", err);
+      }
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+    }
+
+    updateUI();
+    setInterval(fetchOrders, 10000);
+  </script>
+</body>
+</html>
