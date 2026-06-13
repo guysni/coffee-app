@@ -66,12 +66,34 @@
           <input type="text" id="name" required class="w-full px-3 py-2 border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-800 bg-stone-50">
         </div>
 
-        <div>
-          <label id="lblCoffee" class="block text-sm font-semibold mb-1">Coffee Type</label>
-          <select id="coffeeType" class="w-full px-3 py-2 border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-800 bg-stone-50"></select>
+        <div id="coffeeOptions" class="space-y-4">
+          <div>
+            <label id="lblCoffeeMethod" class="block text-sm font-semibold mb-1">Coffee Method</label>
+            <select id="coffeeMethod" class="w-full px-3 py-2 border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-800 bg-stone-50" onchange="onCoffeeMethodChange()"></select>
+          </div>
+          <div id="coffeeStyleField" class="hidden">
+            <label id="lblCoffeeStyle" class="block text-sm font-semibold mb-1">Style</label>
+            <select id="coffeeStyle" class="w-full px-3 py-2 border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-800 bg-stone-50" onchange="onCoffeeStyleChange()"></select>
+          </div>
+          <div id="capsuleMilkStyleField" class="hidden">
+            <label id="lblCapsuleMilkStyle" class="block text-sm font-semibold mb-1">Milk Style</label>
+            <select id="capsuleMilkStyle" class="w-full px-3 py-2 border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-800 bg-stone-50"></select>
+          </div>
+          <div id="cappuccinoMilkModeField" class="hidden">
+            <label id="lblCappuccinoMilkMode" class="block text-sm font-semibold mb-1">Milk Preparation</label>
+            <select id="cappuccinoMilkMode" class="w-full px-3 py-2 border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-800 bg-stone-50" onchange="onCappuccinoModeChange()"></select>
+          </div>
+          <div id="foamLevelField" class="hidden">
+            <label id="lblFoamLevel" class="block text-sm font-semibold mb-1">Foam Level</label>
+            <select id="foamLevel" class="w-full px-3 py-2 border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-800 bg-stone-50"></select>
+          </div>
+          <div id="heatLevelField" class="hidden">
+            <label id="lblHeatLevel" class="block text-sm font-semibold mb-1">Heat Level</label>
+            <select id="heatLevel" class="w-full px-3 py-2 border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-800 bg-stone-50"></select>
+          </div>
         </div>
 
-        <div>
+        <div id="milkField" class="hidden">
           <label id="lblMilk" class="block text-sm font-semibold mb-1">Milk Type</label>
           <select id="milkType" class="w-full px-3 py-2 border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-800 bg-stone-50"></select>
         </div>
@@ -110,7 +132,14 @@
   </main>
 
   <script>
-    // Translations Dictionary
+    const COFFEE_TREE = {
+      methods: ['instant', 'capsules', 'professional'],
+      instant: {},
+      capsules: { styles: ['short', 'long', 'with_milk', 'iced'], withMilk: ['regular', 'cold_foam', 'hot_foam'] },
+      professional: { styles: ['short', 'double', 'cappuccino', 'iced'], cappuccinoModes: ['choice', 'foamed'] },
+      levelKeys: ['1', '2', '3']
+    };
+
     const translations = {
       en: {
         dir: "ltr",
@@ -118,7 +147,12 @@
         headerSubtitle: "Place your order and I'll get brewing",
         formTitle: "Place Your Order",
         lblName: "Your Name",
-        lblCoffee: "Coffee Type",
+        lblCoffeeMethod: "Coffee Method",
+        lblCoffeeStyle: "Style",
+        lblCapsuleMilkStyle: "Milk Style",
+        lblCappuccinoMilkMode: "Milk Preparation",
+        lblFoamLevel: "Foam",
+        lblHeatLevel: "Heat",
         lblMilk: "Milk Type",
         lblSugar: "Sugar Level",
         lblNotes: "Special Notes",
@@ -130,9 +164,35 @@
         successMsg: "Order submitted successfully! ☕",
         errorMsg: "Error submitting order. Try again.",
         doneBtn: "Done",
-        coffeeOptions: ["Espresso", "Double Espresso", "Macchiato", "Cortado", "Cappuccino", "Latte", "Americano", "Flat White"],
-        milkOptions: ["Whole Milk", "Oat Milk", "Almond Milk", "None (Black)"],
-        sugarOptions: ["No Sugar", "½ Teaspoon", "1 Teaspoon", "2 Teaspoons"]
+        sugarOptions: ["No Sugar", "½ Teaspoon", "1 Teaspoon", "2 Teaspoons"],
+        icedDetail: "ice + regular milk",
+        coffeeMethods: {
+          instant: "Instant Coffee (Taster's Choice)",
+          capsules: "Nespresso Capsules",
+          professional: "Professional Bean Grinder"
+        },
+        coffeeStyles: {
+          short: "Short Espresso",
+          long: "Long Espresso",
+          with_milk: "With Milk",
+          iced: "Iced Coffee",
+          double: "Double Espresso",
+          cappuccino: "Cappuccino"
+        },
+        capsuleMilkStyles: {
+          regular: "Regular milk",
+          cold_foam: "Cold foam",
+          hot_foam: "Hot foam"
+        },
+        cappuccinoModes: {
+          choice: "Milk of choice",
+          foamed: "Foamed milk"
+        },
+        milkKeys: {
+          none: "No milk",
+          regular: "Regular 3%",
+          rice: "Rice milk with almonds"
+        }
       },
       he: {
         dir: "rtl",
@@ -140,7 +200,12 @@
         headerSubtitle: "תגידו לי מה בא לכם, ואני כבר מתחיל להכין",
         formTitle: "הזמינו את הקפה שלכם",
         lblName: "שם מלא",
-        lblCoffee: "סוג הקפה",
+        lblCoffeeMethod: "שיטת הכנה",
+        lblCoffeeStyle: "סוג",
+        lblCapsuleMilkStyle: "סוג חלב",
+        lblCappuccinoMilkMode: "הכנת חלב",
+        lblFoamLevel: "קצף",
+        lblHeatLevel: "חום",
         lblMilk: "סוג חלב",
         lblSugar: "כמות סוכר",
         lblNotes: "הערות מיוחדות",
@@ -152,17 +217,190 @@
         successMsg: "ההזמנה נשלחה בהצלחה! ☕",
         errorMsg: "שגיאה בשליחת ההזמנה. נסה שוב.",
         doneBtn: "מוכן",
-        coffeeOptions: ["אספרסו", "אספרסו כפול", "מקיאטו", "קורטאדו", "קפוצ'ינו / הפוך", "לאטה", "אמריקאנו", "פלאט וייט"],
-        milkOptions: ["חלב רגיל", "חלב שיבולת שועל", "חלב שקדים", "ללא חלב (שחור)"],
-        sugarOptions: ["ללא סוכר", "½ כפית סוכר", "1 כפית סוכר", "2 כפיות סוכר"]
+        sugarOptions: ["ללא סוכר", "½ כפית סוכר", "1 כפית סוכר", "2 כפיות סוכר"],
+        icedDetail: "קרח + חלב רגיל",
+        coffeeMethods: {
+          instant: "קפה נמס (Taster's Choice)",
+          capsules: "קפסולות נספרסו",
+          professional: "מכונה מקצועית טוחנת פולים"
+        },
+        coffeeStyles: {
+          short: "אספרסו קצר",
+          long: "אספרסו ארוך",
+          with_milk: "עם חלב",
+          iced: "קפה קר",
+          double: "אספרסו כפול",
+          cappuccino: "קפוצינו"
+        },
+        capsuleMilkStyles: {
+          regular: "רגיל",
+          cold_foam: "מוקצף קר",
+          hot_foam: "מוקצף חם"
+        },
+        cappuccinoModes: {
+          choice: "חלב לבחירה",
+          foamed: "חלב מוקצף"
+        },
+        milkKeys: {
+          none: "ללא חלב",
+          regular: "רגיל 3%",
+          rice: "חלב אורז עם שקדים"
+        }
       }
     };
 
     let currentLang = 'en';
 
+    function populateKeyDropdown(elementId, keys, labelMap) {
+      const select = document.getElementById(elementId);
+      const currentVal = select.value;
+      select.innerHTML = keys.map(key => `<option value="${key}">${labelMap[key]}</option>`).join('');
+      const idx = Array.from(select.options).findIndex(opt => opt.value === currentVal);
+      select.selectedIndex = idx >= 0 ? idx : 0;
+    }
+
+    function populateDropdown(elementId, optionsArray) {
+      const select = document.getElementById(elementId);
+      const currentVal = select.value;
+      select.innerHTML = optionsArray.map(opt => `<option value="${opt}">${opt}</option>`).join('');
+      const idx = Array.from(select.options).findIndex(opt => opt.value === currentVal);
+      select.selectedIndex = idx >= 0 ? idx : 0;
+    }
+
+    function renderCoffeeMethod() {
+      const t = translations[currentLang];
+      populateKeyDropdown('coffeeMethod', COFFEE_TREE.methods, t.coffeeMethods);
+    }
+
+    function renderCoffeeStyle() {
+      const t = translations[currentLang];
+      const method = document.getElementById('coffeeMethod').value;
+      if (method === 'instant') return;
+      const styles = COFFEE_TREE[method].styles;
+      populateKeyDropdown('coffeeStyle', styles, t.coffeeStyles);
+    }
+
+    function renderCoffeeSubOptions() {
+      const t = translations[currentLang];
+      const levelLabels = { '1': '1', '2': '2', '3': '3' };
+      populateKeyDropdown('capsuleMilkStyle', COFFEE_TREE.capsules.withMilk, t.capsuleMilkStyles);
+      populateKeyDropdown('cappuccinoMilkMode', COFFEE_TREE.professional.cappuccinoModes, t.cappuccinoModes);
+      populateKeyDropdown('foamLevel', COFFEE_TREE.levelKeys, levelLabels);
+      populateKeyDropdown('heatLevel', COFFEE_TREE.levelKeys, levelLabels);
+    }
+
+    function refreshMilkOptions(mode) {
+      const t = translations[currentLang];
+      const keys = mode === 'instant' ? ['regular', 'rice']
+        : mode === 'optional' ? ['none', 'regular', 'rice']
+        : ['regular', 'rice'];
+      populateKeyDropdown('milkType', keys, t.milkKeys);
+    }
+
+    function toggleField(id, show) {
+      document.getElementById(id).classList.toggle('hidden', !show);
+    }
+
+    function updateCoffeeVisibility() {
+      const method = document.getElementById('coffeeMethod').value;
+      const style = document.getElementById('coffeeStyle').value;
+      const cappuccinoMode = document.getElementById('cappuccinoMilkMode').value;
+
+      toggleField('coffeeStyleField', method !== 'instant');
+      toggleField('capsuleMilkStyleField', method === 'capsules' && style === 'with_milk');
+      toggleField('cappuccinoMilkModeField', method === 'professional' && style === 'cappuccino');
+
+      const showFoamHeat = method === 'professional' && style === 'cappuccino' && cappuccinoMode === 'foamed';
+      toggleField('foamLevelField', showFoamHeat);
+      toggleField('heatLevelField', showFoamHeat);
+
+      let showMilk = false;
+      let milkMode = null;
+
+      if (method === 'instant') {
+        showMilk = true;
+        milkMode = 'instant';
+      } else if (method === 'professional' && (style === 'short' || style === 'double')) {
+        showMilk = true;
+        milkMode = 'optional';
+      } else if (method === 'professional' && style === 'cappuccino' && cappuccinoMode === 'choice') {
+        showMilk = true;
+        milkMode = 'choice';
+      }
+
+      toggleField('milkField', showMilk);
+      if (showMilk && milkMode) refreshMilkOptions(milkMode);
+    }
+
+    function onCoffeeMethodChange() {
+      renderCoffeeStyle();
+      updateCoffeeVisibility();
+    }
+
+    function onCoffeeStyleChange() {
+      updateCoffeeVisibility();
+    }
+
+    function onCappuccinoModeChange() {
+      updateCoffeeVisibility();
+    }
+
+    function buildOrderSummary() {
+      const t = translations[currentLang];
+      const method = document.getElementById('coffeeMethod').value;
+      const parts = [t.coffeeMethods[method]];
+      let milkType = '';
+
+      if (method === 'instant') {
+        const milkKey = document.getElementById('milkType').value;
+        milkType = t.milkKeys[milkKey];
+      } else {
+        const style = document.getElementById('coffeeStyle').value;
+        parts.push(t.coffeeStyles[style]);
+
+        if (method === 'capsules' && style === 'with_milk') {
+          const capMilk = document.getElementById('capsuleMilkStyle').value;
+          parts.push(t.capsuleMilkStyles[capMilk]);
+        }
+
+        if (style === 'iced') {
+          parts.push(t.icedDetail);
+        }
+
+        if (method === 'professional' && style === 'cappuccino') {
+          const mode = document.getElementById('cappuccinoMilkMode').value;
+          parts.push(t.cappuccinoModes[mode]);
+          if (mode === 'foamed') {
+            parts.push(`${t.lblFoamLevel} ${document.getElementById('foamLevel').value}`);
+            parts.push(`${t.lblHeatLevel} ${document.getElementById('heatLevel').value}`);
+          } else {
+            const milkKey = document.getElementById('milkType').value;
+            milkType = t.milkKeys[milkKey];
+          }
+        }
+
+        if (method === 'professional' && (style === 'short' || style === 'double')) {
+          const milkKey = document.getElementById('milkType').value;
+          if (milkKey !== 'none') milkType = t.milkKeys[milkKey];
+        }
+      }
+
+      return {
+        coffee_type: parts.join(' · '),
+        milk_type: milkType
+      };
+    }
+
+    function resetCoffeeFields() {
+      document.getElementById('coffeeMethod').selectedIndex = 0;
+      renderCoffeeStyle();
+      renderCoffeeSubOptions();
+      updateCoffeeVisibility();
+    }
+
     function updateUI() {
       const t = translations[currentLang];
-      
+
       document.documentElement.dir = t.dir;
       document.documentElement.lang = currentLang;
 
@@ -170,7 +408,12 @@
       document.getElementById('headerSubtitle').innerText = t.headerSubtitle;
       document.getElementById('formTitle').innerText = t.formTitle;
       document.getElementById('lblName').innerText = t.lblName;
-      document.getElementById('lblCoffee').innerText = t.lblCoffee;
+      document.getElementById('lblCoffeeMethod').innerText = t.lblCoffeeMethod;
+      document.getElementById('lblCoffeeStyle').innerText = t.lblCoffeeStyle;
+      document.getElementById('lblCapsuleMilkStyle').innerText = t.lblCapsuleMilkStyle;
+      document.getElementById('lblCappuccinoMilkMode').innerText = t.lblCappuccinoMilkMode;
+      document.getElementById('lblFoamLevel').innerText = t.lblFoamLevel;
+      document.getElementById('lblHeatLevel').innerText = t.lblHeatLevel;
       document.getElementById('lblMilk').innerText = t.lblMilk;
       document.getElementById('lblSugar').innerText = t.lblSugar;
       document.getElementById('lblNotes').innerText = t.lblNotes;
@@ -179,22 +422,13 @@
       document.getElementById('dashboardTitle').innerText = t.dashboardTitle;
       document.getElementById('btnRefresh').innerText = t.btnRefresh;
 
-      populateDropdown('coffeeType', t.coffeeOptions);
-      populateDropdown('milkType', t.milkOptions);
+      renderCoffeeMethod();
+      renderCoffeeStyle();
+      renderCoffeeSubOptions();
       populateDropdown('sugarLevel', t.sugarOptions);
+      updateCoffeeVisibility();
 
       fetchOrders();
-    }
-
-    function populateDropdown(elementId, optionsArray) {
-      const select = document.getElementById(elementId);
-      const currentVal = select.value;
-      const currentIndex = Math.max(0, Array.from(select.options).findIndex(opt => opt.value === currentVal));
-      
-      select.innerHTML = optionsArray.map(opt => `<option value="${opt}">${opt}</option>`).join('');
-      if (select.options[currentIndex]) {
-        select.selectedIndex = currentIndex;
-      }
     }
 
     function toggleLanguage() {
@@ -208,11 +442,12 @@
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
       const t = translations[currentLang];
-      
+      const summary = buildOrderSummary();
+
       const payload = {
         name: document.getElementById('name').value,
-        coffee_type: document.getElementById('coffeeType').value,
-        milk_type: document.getElementById('milkType').value,
+        coffee_type: summary.coffee_type,
+        milk_type: summary.milk_type,
         sugar_level: document.getElementById('sugarLevel').value,
         notes: document.getElementById('notes').value
       };
@@ -224,13 +459,14 @@
         feedback.className = "mt-4 text-center text-green-600 font-medium";
         feedback.innerText = t.successMsg;
         form.reset();
+        resetCoffeeFields();
         fetchOrders();
       } catch (err) {
         feedback.className = "mt-4 text-center text-red-600 font-medium";
         feedback.innerText = t.errorMsg;
         console.error(err);
       }
-      
+
       feedback.classList.remove('hidden');
       setTimeout(() => feedback.classList.add('hidden'), 5000);
     });
@@ -251,22 +487,26 @@
           return;
         }
 
-        container.innerHTML = data.map(order => `
+        container.innerHTML = data.map(order => {
+          const details = order.milk_type
+            ? `🥛 ${escapeHtml(order.milk_type)} | 🍬 ${escapeHtml(order.sugar_level)}`
+            : `🍬 ${escapeHtml(order.sugar_level)}`;
+          return `
           <div class="p-4 border border-stone-100 rounded-xl bg-stone-50 flex justify-between items-start gap-4 shadow-2xs">
             <div>
               <div class="flex items-center gap-2 flex-wrap">
                 <span class="font-bold text-stone-900">${escapeHtml(order.name)}</span>
                 <span class="text-xs bg-amber-100 text-amber-900 px-2 py-0.5 rounded-full font-semibold">${escapeHtml(order.coffee_type)}</span>
               </div>
-              <p class="text-sm text-stone-600 mt-1">🥛 ${escapeHtml(order.milk_type)} | 🍬 ${escapeHtml(order.sugar_level)}</p>
+              <p class="text-sm text-stone-600 mt-1">${details}</p>
               ${order.notes ? `<p class="text-xs italic text-stone-500 mt-1 bg-stone-100 p-1.5 rounded">📝 ${escapeHtml(order.notes)}</p>` : ''}
               <span class="text-[10px] text-stone-400 block mt-2">${new Date(order.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
             </div>
             <button onclick="deleteOrder(${order.id})" class="text-xs text-red-600 hover:text-red-700 bg-red-50 hover:bg-red-100 p-1.5 rounded-lg transition-colors cursor-pointer font-medium">
               ${t.doneBtn}
             </button>
-          </div>
-        `).join('');
+          </div>`;
+        }).join('');
 
       } catch (err) {
         console.error("Error fetching orders:", err);
