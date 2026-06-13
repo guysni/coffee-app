@@ -20,8 +20,22 @@
   <!-- Header -->
   <header class="bg-amber-950 text-amber-50 shadow-md py-6 px-4 mb-8 border-b-4 border-amber-800">
     <div class="max-w-6xl mx-auto">
-      <!-- Language Toggle Button -->
-      <div class="flex justify-end mb-4">
+      <!-- Language Toggle + Host Mode -->
+      <div class="flex justify-between items-center gap-2 mb-4">
+        <div id="hostLoginArea" class="flex items-center gap-2 flex-wrap">
+          <button type="button" id="btnShowHostLogin" onclick="toggleHostLogin()" class="bg-amber-900 hover:bg-amber-800 text-amber-100 font-semibold py-1.5 px-3 rounded-full text-xs transition-colors cursor-pointer border border-amber-700 shadow-xs shrink-0">
+            <span id="btnHostModeText">Host Mode</span>
+          </button>
+          <div id="hostLoginForm" class="hidden flex items-center gap-2 flex-wrap">
+            <input type="password" id="hostCode" class="px-2 py-1 rounded-lg text-xs bg-amber-900 border border-amber-700 text-amber-50 placeholder-amber-300/60 focus:outline-none focus:ring-1 focus:ring-amber-500 w-24" autocomplete="off">
+            <button type="button" onclick="tryHostLogin()" id="btnHostLogin" class="bg-amber-800 hover:bg-amber-700 text-amber-100 font-semibold py-1 px-3 rounded-full text-xs transition-colors cursor-pointer border border-amber-600">OK</button>
+          </div>
+          <span id="hostCodeError" class="hidden text-xs text-red-300"></span>
+        </div>
+        <div id="hostActiveBadge" class="hidden flex items-center gap-2">
+          <span id="hostModeActiveText" class="text-xs font-semibold text-amber-200 bg-amber-900 px-3 py-1 rounded-full border border-amber-700">Host mode active</span>
+          <button type="button" onclick="exitHostMode()" id="btnExitHost" class="text-xs text-amber-300 hover:text-amber-100 underline cursor-pointer">Exit</button>
+        </div>
         <button onclick="toggleLanguage()" class="bg-amber-900 hover:bg-amber-800 text-amber-100 font-semibold py-1.5 px-4 rounded-full text-xs transition-colors cursor-pointer border border-amber-700 shadow-xs shrink-0">
           🌐 <span id="langBtnText">עברית</span>
         </button>
@@ -54,7 +68,7 @@
     </div>
   </header>
 
-  <main class="max-w-6xl mx-auto px-4 grid grid-cols-1 md:grid-cols-2 gap-8">
+  <main id="mainContent" class="max-w-6xl mx-auto px-4 grid grid-cols-1 gap-8">
     
     <!-- Left Column: Order Form -->
     <section class="bg-white p-6 rounded-2xl shadow-xs border border-stone-200 h-fit">
@@ -115,8 +129,8 @@
       <div id="formFeedback" class="mt-4 text-center hidden font-medium"></div>
     </section>
 
-    <!-- Right Column: Host Dashboard -->
-    <section class="bg-white p-6 rounded-2xl shadow-xs border border-stone-200">
+    <!-- Right Column: Host Dashboard (host mode only) -->
+    <section id="hostDashboard" class="hidden bg-white p-6 rounded-2xl shadow-xs border border-stone-200">
       <div class="flex justify-between items-center mb-6 border-b border-stone-100 pb-2">
         <h2 id="dashboardTitle" class="text-xl font-bold text-stone-900">Live Orders (Host View)</h2>
         <button onclick="fetchOrders()" id="btnRefresh" class="text-xs bg-stone-200 hover:bg-stone-300 text-stone-700 px-3 py-1 rounded-full font-medium transition-colors cursor-pointer">
@@ -151,8 +165,8 @@
         lblCoffeeStyle: "Style",
         lblCapsuleMilkStyle: "Milk Style",
         lblCappuccinoMilkMode: "Milk Preparation",
-        lblFoamLevel: "Foam",
-        lblHeatLevel: "Heat",
+        lblFoamLevel: "Foam Level",
+        lblHeatLevel: "Heat Level",
         lblMilk: "Milk Type",
         lblSugar: "Sugar Level",
         lblNotes: "Special Notes",
@@ -164,6 +178,12 @@
         successMsg: "Order submitted successfully! ☕",
         errorMsg: "Error submitting order. Try again.",
         doneBtn: "Done",
+        btnHostMode: "Host Mode",
+        hostCodePlaceholder: "Code",
+        btnHostLogin: "OK",
+        hostModeActive: "Host mode active",
+        btnExitHost: "Exit",
+        hostCodeWrong: "Wrong code",
         sugarOptions: ["No Sugar", "½ Teaspoon", "1 Teaspoon", "2 Teaspoons"],
         icedDetail: "ice + regular milk",
         coffeeMethods: {
@@ -192,6 +212,16 @@
           none: "No milk",
           regular: "Regular 3%",
           rice: "Rice milk with almonds"
+        },
+        foamLevels: {
+          '1': '1 — Foamed',
+          '2': '2 — Really foamed',
+          '3': '3 — Extra foam'
+        },
+        heatLevels: {
+          '1': '1 — Warm',
+          '2': '2 — Hot!',
+          '3': '3 — Really hot'
         }
       },
       he: {
@@ -204,8 +234,8 @@
         lblCoffeeStyle: "סוג",
         lblCapsuleMilkStyle: "סוג חלב",
         lblCappuccinoMilkMode: "הכנת חלב",
-        lblFoamLevel: "קצף",
-        lblHeatLevel: "חום",
+        lblFoamLevel: "רמת קצף",
+        lblHeatLevel: "רמת חום",
         lblMilk: "סוג חלב",
         lblSugar: "כמות סוכר",
         lblNotes: "הערות מיוחדות",
@@ -217,6 +247,12 @@
         successMsg: "ההזמנה נשלחה בהצלחה! ☕",
         errorMsg: "שגיאה בשליחת ההזמנה. נסה שוב.",
         doneBtn: "מוכן",
+        btnHostMode: "מצב מארח",
+        hostCodePlaceholder: "קוד",
+        btnHostLogin: "אישור",
+        hostModeActive: "מצב מארח פעיל",
+        btnExitHost: "יציאה",
+        hostCodeWrong: "קוד שגוי",
         sugarOptions: ["ללא סוכר", "½ כפית סוכר", "1 כפית סוכר", "2 כפיות סוכר"],
         icedDetail: "קרח + חלב רגיל",
         coffeeMethods: {
@@ -245,11 +281,24 @@
           none: "ללא חלב",
           regular: "רגיל 3%",
           rice: "חלב אורז עם שקדים"
+        },
+        foamLevels: {
+          '1': '1 — מוקצף',
+          '2': '2 — ממש מוקצף',
+          '3': '3 — מוקצף בהגזמה'
+        },
+        heatLevels: {
+          '1': '1 — חמים',
+          '2': '2 — חם!',
+          '3': '3 — חם ממש'
         }
       }
     };
 
+    const HOST_CODE = 'guy123';
     let currentLang = 'en';
+    let isHostMode = sessionStorage.getItem('hostMode') === 'true';
+    let orderPollInterval = null;
 
     function populateKeyDropdown(elementId, keys, labelMap) {
       const select = document.getElementById(elementId);
@@ -282,11 +331,10 @@
 
     function renderCoffeeSubOptions() {
       const t = translations[currentLang];
-      const levelLabels = { '1': '1', '2': '2', '3': '3' };
       populateKeyDropdown('capsuleMilkStyle', COFFEE_TREE.capsules.withMilk, t.capsuleMilkStyles);
       populateKeyDropdown('cappuccinoMilkMode', COFFEE_TREE.professional.cappuccinoModes, t.cappuccinoModes);
-      populateKeyDropdown('foamLevel', COFFEE_TREE.levelKeys, levelLabels);
-      populateKeyDropdown('heatLevel', COFFEE_TREE.levelKeys, levelLabels);
+      populateKeyDropdown('foamLevel', COFFEE_TREE.levelKeys, t.foamLevels);
+      populateKeyDropdown('heatLevel', COFFEE_TREE.levelKeys, t.heatLevels);
     }
 
     function refreshMilkOptions(mode) {
@@ -371,8 +419,10 @@
           const mode = document.getElementById('cappuccinoMilkMode').value;
           parts.push(t.cappuccinoModes[mode]);
           if (mode === 'foamed') {
-            parts.push(`${t.lblFoamLevel} ${document.getElementById('foamLevel').value}`);
-            parts.push(`${t.lblHeatLevel} ${document.getElementById('heatLevel').value}`);
+            const foamKey = document.getElementById('foamLevel').value;
+            const heatKey = document.getElementById('heatLevel').value;
+            parts.push(`${t.lblFoamLevel}: ${t.foamLevels[foamKey]}`);
+            parts.push(`${t.lblHeatLevel}: ${t.heatLevels[heatKey]}`);
           } else {
             const milkKey = document.getElementById('milkType').value;
             milkType = t.milkKeys[milkKey];
@@ -398,6 +448,75 @@
       updateCoffeeVisibility();
     }
 
+    function toggleHostLogin() {
+      const form = document.getElementById('hostLoginForm');
+      form.classList.toggle('hidden');
+      document.getElementById('hostCodeError').classList.add('hidden');
+      if (!form.classList.contains('hidden')) {
+        document.getElementById('hostCode').value = '';
+        document.getElementById('hostCode').focus();
+      }
+    }
+
+    function tryHostLogin() {
+      const t = translations[currentLang];
+      if (document.getElementById('hostCode').value === HOST_CODE) {
+        document.getElementById('hostCodeError').classList.add('hidden');
+        enterHostMode();
+      } else {
+        const err = document.getElementById('hostCodeError');
+        err.innerText = t.hostCodeWrong;
+        err.classList.remove('hidden');
+      }
+    }
+
+    function enterHostMode() {
+      isHostMode = true;
+      sessionStorage.setItem('hostMode', 'true');
+      document.getElementById('hostLoginForm').classList.add('hidden');
+      updateHostUI();
+      fetchOrders();
+      startOrderPolling();
+    }
+
+    function exitHostMode() {
+      isHostMode = false;
+      sessionStorage.removeItem('hostMode');
+      stopOrderPolling();
+      updateHostUI();
+    }
+
+    function startOrderPolling() {
+      stopOrderPolling();
+      orderPollInterval = setInterval(fetchOrders, 10000);
+    }
+
+    function stopOrderPolling() {
+      if (orderPollInterval) {
+        clearInterval(orderPollInterval);
+        orderPollInterval = null;
+      }
+    }
+
+    function updateHostUI() {
+      const main = document.getElementById('mainContent');
+      const dashboard = document.getElementById('hostDashboard');
+      const loginArea = document.getElementById('hostLoginArea');
+      const activeBadge = document.getElementById('hostActiveBadge');
+
+      if (isHostMode) {
+        dashboard.classList.remove('hidden');
+        main.classList.add('md:grid-cols-2');
+        loginArea.classList.add('hidden');
+        activeBadge.classList.remove('hidden');
+      } else {
+        dashboard.classList.add('hidden');
+        main.classList.remove('md:grid-cols-2');
+        loginArea.classList.remove('hidden');
+        activeBadge.classList.add('hidden');
+      }
+    }
+
     function updateUI() {
       const t = translations[currentLang];
 
@@ -421,14 +540,20 @@
       document.getElementById('btnSubmit').innerText = t.btnSubmit;
       document.getElementById('dashboardTitle').innerText = t.dashboardTitle;
       document.getElementById('btnRefresh').innerText = t.btnRefresh;
+      document.getElementById('btnHostModeText').innerText = t.btnHostMode;
+      document.getElementById('hostCode').placeholder = t.hostCodePlaceholder;
+      document.getElementById('btnHostLogin').innerText = t.btnHostLogin;
+      document.getElementById('hostModeActiveText').innerText = t.hostModeActive;
+      document.getElementById('btnExitHost').innerText = t.btnExitHost;
 
       renderCoffeeMethod();
       renderCoffeeStyle();
       renderCoffeeSubOptions();
       populateDropdown('sugarLevel', t.sugarOptions);
       updateCoffeeVisibility();
+      updateHostUI();
 
-      fetchOrders();
+      if (isHostMode) fetchOrders();
     }
 
     function toggleLanguage() {
@@ -460,7 +585,7 @@
         feedback.innerText = t.successMsg;
         form.reset();
         resetCoffeeFields();
-        fetchOrders();
+        if (isHostMode) fetchOrders();
       } catch (err) {
         feedback.className = "mt-4 text-center text-red-600 font-medium";
         feedback.innerText = t.errorMsg;
@@ -472,6 +597,7 @@
     });
 
     async function fetchOrders() {
+      if (!isHostMode) return;
       const t = translations[currentLang];
       try {
         const { data, error } = await supabaseClient
@@ -514,6 +640,7 @@
     }
 
     async function deleteOrder(id) {
+      if (!isHostMode) return;
       try {
         const { error } = await supabaseClient.from('coffee_orders').delete().eq('id', id);
         if (error) throw error;
@@ -529,7 +656,7 @@
     }
 
     updateUI();
-    setInterval(fetchOrders, 10000);
+    if (isHostMode) startOrderPolling();
   </script>
 </body>
 </html>
