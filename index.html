@@ -82,6 +82,14 @@
           <input type="text" id="name" required class="w-full px-3 py-2 border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-800 bg-stone-50">
         </div>
 
+        <div>
+          <label id="lblDrinkType" class="block text-sm font-semibold mb-1">Beverage</label>
+          <select id="drinkType" class="w-full px-3 py-2 border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-800 bg-stone-50" onchange="onDrinkTypeChange()">
+            <option value="coffee">Coffee</option>
+            <option value="tea">Tea</option>
+          </select>
+        </div>
+
         <div id="coffeeOptions" class="space-y-4">
           <div>
             <label id="lblCoffeeMethod" class="block text-sm font-semibold mb-1">Coffee Method</label>
@@ -163,6 +171,7 @@
         headerSubtitle: "Place your order and I'll get brewing",
         formTitle: "Place Your Order",
         lblName: "Your Name",
+        lblDrinkType: "Beverage",
         lblCoffeeMethod: "Coffee Method",
         lblCoffeeStyle: "Style",
         lblCapsuleMilkStyle: "Milk Style",
@@ -188,6 +197,10 @@
         hostCodeWrong: "Wrong code",
         sugarOptions: ["No Sugar", "½ Teaspoon", "1 Teaspoon", "2 Teaspoons"],
         icedDetail: "ice + regular milk",
+        beverageTypes: {
+          coffee: "Coffee",
+          tea: "Tea"
+        },
         coffeeMethods: {
           instant: "Instant Coffee (Taster's Choice)",
           capsules: "Nespresso Capsules",
@@ -232,6 +245,7 @@
         headerSubtitle: "תגידו לי מה בא לכם, ואני כבר מתחיל להכין",
         formTitle: "הזמינו את הקפה שלכם",
         lblName: "שם מלא",
+        lblDrinkType: "משקה",
         lblCoffeeMethod: "שיטת הכנה",
         lblCoffeeStyle: "סוג",
         lblCapsuleMilkStyle: "סוג חלב",
@@ -257,6 +271,10 @@
         hostCodeWrong: "קוד שגוי",
         sugarOptions: ["ללא סוכר", "½ כפית סוכר", "1 כפית סוכר", "2 כפיות סוכר"],
         icedDetail: "קרח + חלב רגיל",
+        beverageTypes: {
+          coffee: "קפה",
+          tea: "תה"
+        },
         coffeeMethods: {
           instant: "קפה נמס (Taster's Choice)",
           capsules: "קפסולות נספרסו",
@@ -318,6 +336,11 @@
       select.selectedIndex = idx >= 0 ? idx : 0;
     }
 
+    function renderDrinkType() {
+      const t = translations[currentLang];
+      populateKeyDropdown('drinkType', ['coffee', 'tea'], t.beverageTypes);
+    }
+
     function renderCoffeeMethod() {
       const t = translations[currentLang];
       populateKeyDropdown('coffeeMethod', COFFEE_TREE.methods, t.coffeeMethods);
@@ -351,7 +374,22 @@
       document.getElementById(id).classList.toggle('hidden', !show);
     }
 
+    function onDrinkTypeChange() {
+      updateDrinkVisibility();
+    }
+
+    function updateDrinkVisibility() {
+      const isTea = document.getElementById('drinkType').value === 'tea';
+      toggleField('coffeeOptions', !isTea);
+      if (isTea) {
+        toggleField('milkField', false);
+      } else {
+        updateCoffeeVisibility();
+      }
+    }
+
     function updateCoffeeVisibility() {
+      if (document.getElementById('drinkType').value === 'tea') return;
       const method = document.getElementById('coffeeMethod').value;
       const style = document.getElementById('coffeeStyle').value;
       const cappuccinoMode = document.getElementById('cappuccinoMilkMode').value;
@@ -397,6 +435,14 @@
 
     function buildOrderSummary() {
       const t = translations[currentLang];
+
+      if (document.getElementById('drinkType').value === 'tea') {
+        return {
+          coffee_type: t.beverageTypes.tea,
+          milk_type: ''
+        };
+      }
+
       const method = document.getElementById('coffeeMethod').value;
       const parts = [t.coffeeMethods[method]];
       let milkType = '';
@@ -444,10 +490,11 @@
     }
 
     function resetCoffeeFields() {
+      document.getElementById('drinkType').selectedIndex = 0;
       document.getElementById('coffeeMethod').selectedIndex = 0;
       renderCoffeeStyle();
       renderCoffeeSubOptions();
-      updateCoffeeVisibility();
+      updateDrinkVisibility();
     }
 
     function toggleHostLogin() {
@@ -529,6 +576,7 @@
       document.getElementById('headerSubtitle').innerText = t.headerSubtitle;
       document.getElementById('formTitle').innerText = t.formTitle;
       document.getElementById('lblName').innerText = t.lblName;
+      document.getElementById('lblDrinkType').innerText = t.lblDrinkType;
       document.getElementById('lblCoffeeMethod').innerText = t.lblCoffeeMethod;
       document.getElementById('lblCoffeeStyle').innerText = t.lblCoffeeStyle;
       document.getElementById('lblCapsuleMilkStyle').innerText = t.lblCapsuleMilkStyle;
@@ -548,11 +596,12 @@
       document.getElementById('hostModeActiveText').innerText = t.hostModeActive;
       document.getElementById('btnExitHost').innerText = t.btnExitHost;
 
+      renderDrinkType();
       renderCoffeeMethod();
       renderCoffeeStyle();
       renderCoffeeSubOptions();
       populateDropdown('sugarLevel', t.sugarOptions);
-      updateCoffeeVisibility();
+      updateDrinkVisibility();
       updateHostUI();
 
       if (isHostMode) fetchOrders();
